@@ -1,0 +1,8 @@
+﻿namespace BM.BuildingBlocks.Domain.Events.Base;
+
+public abstract class IntegrationEvent
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public DateTime OccurredAt { get; init; } = DateTime.UtcNow;
+    public string? EventType => GetType().Name;
+}
