@@ -70,15 +70,23 @@ Este projeto segue [Conventional Commits](https://www.conventionalcommits.org/),
 
 ```
 /src
-  /AuthService
-  /ContaCorrenteService
-  /TransferenciaService
-  /TarifaService (opcional)
-  /BuildingBlocks
+  /services
+    /UsuarioService
+    /ContaCorrenteService
+    /TransferenciaService
+    /TarifaServiceService
 
 /tests
-  /AuthService.Tests
-  /Integration.Tests
+  /unit
+    /Usuario.Unit.Tests
+    /ContaCorrente.Unit.Tests
+    /Transferencia.Unit.Tests
+    /TarifaService.Unit.Tests
+  /integration
+    /Usuario.Integration.Tests
+    /ContaCorrente.Integration.Tests
+    /Transferencia.Integration.Tests
+    /TarifaService.Integration.Tests
 ```
 
 ---
