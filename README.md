@@ -9,7 +9,7 @@
 - **UsuarioService**: autenticação e gestão de usuários
 - **ContaCorrenteService**: criação e movimentação de contas correntes
 - **TransferenciaService**: transferência entre contas
-- **TarifaService** *(opcional)*: processamento assíncrono de tarifas via Kafka
+- **TarifaService**: processamento assíncrono de tarifas via Kafka
 - **BuildingBlocks**: núcleo compartilhado com abstrações, mensagens, eventos, segurança e logging
 
 ---
