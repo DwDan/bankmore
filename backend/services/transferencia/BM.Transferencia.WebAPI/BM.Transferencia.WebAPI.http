@@ -1,0 +1,6 @@
+@BM.Transferencia.WebAPI_HostAddress = http://localhost:5253
+
+GET {{BM.Transferencia.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
