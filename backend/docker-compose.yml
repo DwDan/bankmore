@@ -1,0 +1,131 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-kafka:7.2.1
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+  bm.postgres:
+    container_name: bm_postgres
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=BankMoreDb
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=dbpass
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
+
+  seq:
+    image: datalust/seq
+    container_name: seq
+    ports:
+      - "5341:80"
+    environment:
+      - ACCEPT_EULA=Y
+
+  bm.usuario.webapi:
+    container_name: bm_usuario_webapi
+    image: bm.usuario.webapi
+    build:
+      context: ./services/usuario
+      dockerfile: BM.Usuario.WebAPI/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8090
+      - ASPNETCORE_HTTPS_PORTS=8091
+      - ConnectionStrings__DefaultConnection=Host=bm.postgres;Port=5432;Database=BankMoreDb;Username=dbuser;Password=dbpass
+      - Serilog__WriteTo__0__Name=Seq
+      - Serilog__WriteTo__0__Args__serverUrl=http://seq:5341
+    ports:
+      - "8090:8090"
+      - "8091:8091"
+    depends_on:
+      - bm.postgres
+      - seq
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+
+  bm.contacorrente.webapi:
+    container_name: bm_contacorrente_webapi
+    image: bm.contacorrente.webapi
+    build:
+      context: ./services/contacorrente
+      dockerfile: BM.ContaCorrente.WebAPI/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8100
+      - ASPNETCORE_HTTPS_PORTS=8101
+      - ConnectionStrings__DefaultConnection=Host=bm.postgres;Port=5432;Database=BankMoreDb;Username=dbuser;Password=dbpass
+      - Serilog__WriteTo__0__Name=Seq
+      - Serilog__WriteTo__0__Args__serverUrl=http://seq:5341
+    ports:
+      - "8100:8100"
+      - "8101:8101"
+    depends_on:
+      - bm.postgres
+      - seq
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+
+  bm.transferencia.webapi:
+    container_name: bm_transferencia_webapi
+    image: bm.transferencia.webapi
+    build:
+      context: ./services/transferencia
+      dockerfile: BM.Transferencia.WebAPI/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8110
+      - ASPNETCORE_HTTPS_PORTS=8111
+      - ConnectionStrings__DefaultConnection=Host=bm.postgres;Port=5432;Database=BankMoreDb;Username=dbuser;Password=dbpass
+      - Serilog__WriteTo__0__Name=Seq
+      - Serilog__WriteTo__0__Args__serverUrl=http://seq:5341
+    ports:
+      - "8110:8110"
+      - "8111:8111"
+    depends_on:
+      - bm.postgres
+      - seq
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+
+  bm.tarifa.service:
+    container_name: bm_tarifa_service
+    image: bm.tarifa.service
+    build:
+      context: ./services/tarifa
+      dockerfile: BM.TarifaService/Dockerfile
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=bm.postgres;Port=5432;Database=BankMoreDb;Username=dbuser;Password=dbpass
+      - Serilog__WriteTo__0__Name=Seq
+      - Serilog__WriteTo__0__Args__serverUrl=http://seq:5341
+    depends_on:
+      - kafka
+      - init-kafka
+      - bm.postgres
+      - seq
+    restart: unless-stopped
